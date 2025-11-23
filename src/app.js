@@ -5,11 +5,16 @@ const express=require('express')
 const app=express()
 
 app.get("/user",function(req,res){
+    console.log(req.query)
+    res.send({firstname:"khalid",lastname:"B"})
+})
+
+app.get("/user2/:userid/:name/:password",function(req,res){
+    console.log(req.params)
     res.send({firstname:"khalid",lastname:"B"})
 })
 
 app.post("/user",function(req,res){
-    console.log(req.body)
     res.send("Successfully posted an api")
 })
 

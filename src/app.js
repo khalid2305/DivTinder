@@ -1,34 +1,82 @@
 const express=require('express')
 
 const app=express()
+const{adminAuth,userAuth}=require("./middlewares/auth")
 
 
-app.use(
-  "/",
-  (req,res,next)=>{
-  next();
-},(req,res,next)=>{
-    //  res.send("Hi da")
-    next()
-  });
-app.use(
-  "/use",
-  (req,res,next)=>{
-     console.log('Hi khalid 1')
-     next()
-  },
-  (req,res,next)=>{
-    console.log("Hi khalid 2")
-    next()
-  },
-  (req,res,next)=>{
-    console.log("khalid 3")
-    res.send("hi khalid 3")
+app.use("/admin",adminAuth);
+
+app.get(
+  "/admin/getdata",
+  (req,res)=>{
+    res.send("Got All data");
   }
-);
+)
+
+app.post(
+  "/user/login",
+  (req,res)=>{
+    res.send("Auth is not needed for login");
+  }
+)
+app.get(
+  "/user/data",
+  userAuth,
+  (req,res)=>{
+    res.send("Auth succesfull")
+  }
+)
+app.get(
+  "/admin/post",(req,res)=>{
+       res.send("postes");
+  }
+)
+
 app.listen(7777,()=>{
     console.log("hi khalid i just now started to listen btw")
 })
+
+
+
+
+//middleware------------------------------------------------------
+
+// const middleware=(req,res,next)=>{
+//   console.log("Checking admin auth...");
+//   const token="xyz";
+//   if(token!="xyz"){
+//     return res.status(401).send("Unauthorized request");
+//   }
+//   next();
+// }
+
+
+// app.use(
+//   "/",
+//   (req,res,next)=>{
+//   next();
+// },(req,res,next)=>{
+//     //  res.send("Hi da")
+//     next()
+//   });
+// app.use(
+//   "/use",
+//   (req,res,next)=>{
+//      console.log('Hi khalid 1')
+//      next()
+//   },
+//   (req,res,next)=>{
+//     console.log("Hi khalid 2")
+//     next()
+//   },
+//   (req,res,next)=>{
+//     console.log("khalid 3")
+//     res.send("hi khalid 3")
+//   }
+// );
+// app.listen(7777,()=>{
+//     console.log("hi khalid i just now started to listen btw")
+// })
 
 
 

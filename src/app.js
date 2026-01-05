@@ -3,43 +3,86 @@ const express=require('express')
 const app=express()
 const{adminAuth,userAuth}=require("./middlewares/auth")
 
+const connectDB=require("./config/database")
 
-app.use("/admin",adminAuth);
+const User=require("./Models/user");
 
-app.get(
-  "/admin/getdata",
-  (req,res)=>{
-    res.send("Got All data");
+app.post("/signup",async(req,res)=>{
+  const userObj={
+    firstName:"k",
+    lastName:"B",
+    email:"khalid@gmail.com",
+    password:"heartbroke",
+    age:20,
+    gender:"male",
+    _id:"507f1f77bcf86cd799439011"
   }
-)
-
-app.post(
-  "/user/login",
-  (req,res)=>{
-    res.send("Auth is not needed for login");
+  const user=new User(userObj);
+  try{
+   await user.save();
+   res.send("successfully stored the data");
   }
-)
-app.get(
-  "/user/data",
-  userAuth,
-  (req,res)=>{
-    res.send("Auth succesfull")
+  catch(err){
+    res.status(400).send("Error while saving the User:" + err.message);
   }
-)
-app.get(
-  "/admin/post",(req,res)=>{
-       res.send("postes");
-  }
-)
-
-app.listen(7777,()=>{
-    console.log("hi khalid i just now started to listen btw")
+   
 })
+
+connectDB()
+.then(()=>{
+  console.log("Database connection eshtablished...")
+  app.listen(7777,()=>{
+    console.log("Server is successfully listening on port 7777....")
+  })
+})
+.catch((err)=>{
+  console.log("Database cannot be connected!!");
+})
+
+
+
+//Auth---------------------------------------------------
+
+
+
+
+// app.use("/admin",adminAuth);
+
+// app.get(
+//   "/admin/getdata",
+//   (req,res)=>{
+//     res.send("Got All data");
+//   }
+// )
+
+// app.post(
+//   "/user/login",
+//   (req,res)=>{
+//     res.send("Auth is not needed for login");
+//   }
+// )
+// app.get(
+//   "/user/data",
+//   userAuth,
+//   (req,res)=>{
+//     res.send("Auth succesfull")
+//   }
+// )
+// app.get(
+//   "/admin/post",(req,res)=>{
+//        res.send("postes");
+//   }
+// )
+
+// app.listen(7777,()=>{
+//     console.log("hi khalid i just now started to listen btw")
+// })
 
 
 
 
 //middleware------------------------------------------------------
+
 
 // const middleware=(req,res,next)=>{
 //   console.log("Checking admin auth...");
@@ -84,6 +127,7 @@ app.listen(7777,()=>{
 
 
 
+
 // app.listen(7777,()=>{
 //     console.log("hi khalid i just now started to listen btw")
 // })
@@ -91,6 +135,7 @@ app.listen(7777,()=>{
 
 
 //Query and params----------------------------------------------------------->
+
 
 
 

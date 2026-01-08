@@ -1,23 +1,16 @@
 const express=require('express')
 
 const app=express()
+
 const{adminAuth,userAuth}=require("./middlewares/auth")
 
 const connectDB=require("./config/database")
 
 const User=require("./Models/user");
+app.use(express.json())
 
-app.post("/signup",async(req,res)=>{
-  const userObj={
-    firstName:"k",
-    lastName:"B",
-    email:"khalid@gmail.com",
-    password:"heartbroke",
-    age:20,
-    gender:"male",
-    _id:"507f1f77bcf86cd799439011"
-  }
-  const user=new User(userObj);
+app.post("/user",async(req,res)=>{
+  const user=new User(req.body);
   try{
    await user.save();
    res.send("successfully stored the data");
@@ -25,8 +18,75 @@ app.post("/signup",async(req,res)=>{
   catch(err){
     res.status(400).send("Error while saving the User:" + err.message);
   }
-   
 })
+
+app.get("/user",async(req,res)=>{
+const userfirstName=req.body.firstName
+try{
+const user=await User.find({firstName:userfirstName});
+if(user.length==0){
+  res.status(404).send("User not found");
+}else{
+res.send(user);
+}
+}
+catch(err){
+  res.status(400).send("Something went wrong")
+}
+})
+
+app.get("/feed",async(req,res)=>{
+  try{
+  const user=await User.find();
+  res.send(user)
+  }
+  catch(err){
+    res.status(500).send("Error fetching users :"+err.message)
+  }
+})
+
+app.delete("/user",async(req,res)=>{
+  const userId=req.body.userId;
+  try{
+  const user=await User.findByIdAndDelete(userId);
+  if(user.length==0){
+    res.status(404).send("User not found")
+  }
+  res.send("User deleted Successfully")
+}
+catch(err){
+  res.status(400).send(err.message)
+}
+})
+
+app.patch("/user/:userId",async(req,res)=>{
+const userId=req.params.userId;
+const body=req.body;
+try{
+const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"];
+
+const isUpdateAllowed=Object.keys(body).every((k)=>
+  ALLOWED_UPDATES.includes(k)
+);
+
+if(!isUpdateAllowed){
+  res.status(400).send("Update not allowed");
+}
+
+const user=await User.findByIdAndUpdate(userId,body,
+  {returnDocument:"before",
+   runValidators:true
+  })
+console.log(user);
+res.send("Updated successfully")
+}
+catch(err){
+  res.status(500).send("Error while updating")
+}
+})
+
+
+
 
 connectDB()
 .then(()=>{
@@ -39,11 +99,33 @@ connectDB()
   console.log("Database cannot be connected!!");
 })
 
+//stroing data to DB-----------------------------------------------------------------------------
 
 
-//Auth---------------------------------------------------
+// app.post("/signup",async(req,res)=>{
+//   const userObj={
+//     firstName:"k",
+//     lastName:"B",
+//     email:"khalid@gmail.com",
+//     password:"heartbroke",
+//     age:20,
+//     gender:"male",
+//     _id:"507f1f77bcf86cd799439011"
+//   }
+//   const user=new User(userObj);
+//   try{
+//    await user.save();
+//    res.send("successfully stored the data");
+//   }
+//   catch(err){
+//     res.status(400).send("Error while saving the User:" + err.message);
+//   }
+   
+// })
 
 
+
+//Auth-----------------------------------------------------------------
 
 
 // app.use("/admin",adminAuth);

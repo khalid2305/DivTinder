@@ -7,7 +7,93 @@ const{adminAuth,userAuth}=require("./middlewares/auth")
 const connectDB=require("./config/database")
 
 const User=require("./Models/user");
+
+const {validateSignUpData}=require("./utils/validation");
+
+const bcrypt=require("bcrypt")
+
+const cookieParser= require("cookie-parser")
+
+const jwt=require("jsonwebtoken") 
+
 app.use(express.json())
+
+app.use(cookieParser())
+
+
+
+app.post("/signup",async(req,res)=>{
+  try{
+    validateSignUpData(req);
+    const {firstName,lastName,emailId,password}=req.body;
+    const passwordHash= await bcrypt.hash(password,10);
+    console.log(passwordHash);
+
+    const user=new User({
+      firstName,
+      lastName,
+      emailId,
+      password:passwordHash,
+    });
+
+    await user.save()
+    res.send("User Added Successfully")
+  }
+  catch(err){
+    res.status(400).send("Error :"+err.message);
+  }
+})
+
+app.post("/login",async (req,res)=>{
+  try{
+    const{emailId,password}=req.body;
+    const user=await User.findOne({emailId:emailId});
+    if(!user){
+      throw new Error("Imvalid credentials");
+    }
+    const isPassword =await bcrypt.compare(password,user.password);
+    if(isPassword){
+      const token=await jwt.sign({_id: user._id},"Khalid@Lonewolf")
+      console.log(token);
+      res.cookie("token",token);
+      res.send("login success");
+
+    }else{
+      throw new Error("Imvalid credentials");
+    }
+  }
+  catch(err){
+    res.status(400).send("Error : "+err.message);
+  }
+})
+
+
+app.get("/profile",async(req,res)=>{
+
+ try{
+   const cookie=req.cookies;
+   const{token}=cookie
+   if(!token){
+    throw new Error("Invalid token");
+   }
+   const decodedMessage=jwt.verify(token,"Khalid@Lonewolf")
+   const {_id}=decodedMessage;
+
+   const user=await User.findById(_id);
+   if(!user){
+    throw new Error("User not exist");
+   }
+   console.log("Logged in by the user is: "+_id)
+   res.send(user);
+
+  } 
+  catch(err){
+    res.status(400).send("err :"+err.message);
+  }
+  // console.log(decodedMessage)
+  res.send(user);
+})
+
 
 app.post("/user",async(req,res)=>{
   const user=new User(req.body);
@@ -78,8 +164,10 @@ const user=await User.findByIdAndUpdate(userId,body,
    runValidators:true
   })
 console.log(user);
+
 res.send("Updated successfully")
 }
+
 catch(err){
   res.status(500).send("Error while updating")
 }

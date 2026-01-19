@@ -54,7 +54,7 @@ app.post("/login",async (req,res)=>{
     const isPassword =await bcrypt.compare(password,user.password);
     if(isPassword){
       const token=await jwt.sign({_id: user._id},"Khalid@Lonewolf")
-      console.log(token);
+      // console.log(token);
       res.cookie("token",token);
       res.send("login success");
 
@@ -67,112 +67,30 @@ app.post("/login",async (req,res)=>{
   }
 })
 
-
-app.get("/profile",async(req,res)=>{
+app.get("/profile",userAuth,async(req,res)=>{
 
  try{
-   const cookie=req.cookies;
-   const{token}=cookie
-   if(!token){
-    throw new Error("Invalid token");
-   }
-   const decodedMessage=jwt.verify(token,"Khalid@Lonewolf")
-   const {_id}=decodedMessage;
+  //  const cookie=req.cookies;
+  //  const{token}=cookie
+  //  if(!token){
+  //   throw new Error("Invalid token");
+  //  }
+  //  const decodedMessage=jwt.verify(token,"Khalid@Lonewolf")
+  //  const {_id}=decodedMessage;
+  //  const user=await User.findById(_id);
+  //  if(!user){
+  //   throw new Error("User not exist");
+  //  }
 
-   const user=await User.findById(_id);
-   if(!user){
-    throw new Error("User not exist");
-   }
-   console.log("Logged in by the user is: "+_id)
-   res.send(user);
-
-  } 
+    user=req.user;
+    const {_id}=user;
+    console.log("Logged in by the user is: "+_id)
+    res.send(user);
+  }
   catch(err){
     res.status(400).send("err :"+err.message);
   }
-  // console.log(decodedMessage)
-  res.send(user);
 })
-
-
-app.post("/user",async(req,res)=>{
-  const user=new User(req.body);
-  try{
-   await user.save();
-   res.send("successfully stored the data");
-  }
-  catch(err){
-    res.status(400).send("Error while saving the User:" + err.message);
-  }
-})
-
-app.get("/user",async(req,res)=>{
-const userfirstName=req.body.firstName
-try{
-const user=await User.find({firstName:userfirstName});
-if(user.length==0){
-  res.status(404).send("User not found");
-}else{
-res.send(user);
-}
-}
-catch(err){
-  res.status(400).send("Something went wrong")
-}
-})
-
-app.get("/feed",async(req,res)=>{
-  try{
-  const user=await User.find();
-  res.send(user)
-  }
-  catch(err){
-    res.status(500).send("Error fetching users :"+err.message)
-  }
-})
-
-app.delete("/user",async(req,res)=>{
-  const userId=req.body.userId;
-  try{
-  const user=await User.findByIdAndDelete(userId);
-  if(user.length==0){
-    res.status(404).send("User not found")
-  }
-  res.send("User deleted Successfully")
-}
-catch(err){
-  res.status(400).send(err.message)
-}
-})
-
-app.patch("/user/:userId",async(req,res)=>{
-const userId=req.params.userId;
-const body=req.body;
-try{
-const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"];
-
-const isUpdateAllowed=Object.keys(body).every((k)=>
-  ALLOWED_UPDATES.includes(k)
-);
-
-if(!isUpdateAllowed){
-  res.status(400).send("Update not allowed");
-}
-
-const user=await User.findByIdAndUpdate(userId,body,
-  {returnDocument:"before",
-   runValidators:true
-  })
-console.log(user);
-
-res.send("Updated successfully")
-}
-
-catch(err){
-  res.status(500).send("Error while updating")
-}
-})
-
 
 
 
@@ -186,6 +104,96 @@ connectDB()
 .catch((err)=>{
   console.log("Database cannot be connected!!");
 })
+
+
+
+
+
+
+
+
+//---------------------Delete,patch,post-------------------------------------------------------
+
+
+// app.post("/user",async(req,res)=>{
+//   const user=new User(req.body);
+//   try{
+//    await user.save();
+//    res.send("successfully stored the data");
+//   }
+//   catch(err){
+//     res.status(400).send("Error while saving the User:" + err.message);
+//   }
+// })
+
+// app.get("/user",async(req,res)=>{
+// const userfirstName=req.body.firstName
+// try{
+// const user=await User.find({firstName:userfirstName});
+// if(user.length==0){
+//   res.status(404).send("User not found");
+// }else{
+// res.send(user);
+// }
+// }
+// catch(err){
+//   res.status(400).send("Something went wrong")
+// }
+// })
+
+// app.get("/feed",async(req,res)=>{
+//   try{
+//   const user=await User.find();
+//   res.send(user)
+//   }
+//   catch(err){
+//     res.status(500).send("Error fetching users :"+err.message)
+//   }
+// })
+
+// app.delete("/user",async(req,res)=>{
+//   const userId=req.body.userId;
+//   try{
+//   const user=await User.findByIdAndDelete(userId);
+//   if(user.length==0){
+//     res.status(404).send("User not found")
+//   }
+//   res.send("User deleted Successfully")
+// }
+// catch(err){
+//   res.status(400).send(err.message)
+// }
+// })
+
+// app.patch("/user/:userId",async(req,res)=>{
+// const userId=req.params.userId;
+// const body=req.body;
+// try{
+// const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"];
+
+// const isUpdateAllowed=Object.keys(body).every((k)=>
+//   ALLOWED_UPDATES.includes(k)
+// );
+
+// if(!isUpdateAllowed){
+//   res.status(400).send("Update not allowed");
+// }
+
+// const user=await User.findByIdAndUpdate(userId,body,
+//   {returnDocument:"before",
+//    runValidators:true
+//   })
+// console.log(user);
+
+// res.send("Updated successfully")
+// }
+
+// catch(err){
+//   res.status(500).send("Error while updating")
+// }
+// })
+
+
 
 //stroing data to DB-----------------------------------------------------------------------------
 
